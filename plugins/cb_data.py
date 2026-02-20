@@ -209,11 +209,14 @@ async def vid(bot, update):
     except:
         pass
     thumb = data[0]
-
+    
     duration = 0
-    metadata = extractMetadata(createParser(file_path))
-    if metadata.has("duration"):
-        duration = metadata.get('duration').seconds
+
+    parser = createParser(file_path)
+    if parser:
+        metadata = extractMetadata(parser)
+        if metadata and metadata.has("duration"):
+            duration = metadata.get("duration").seconds
     if c_caption:
         vid_list = ["filename", "filesize", "duration"]
         new_tex = escape_invalid_curly_brackets(c_caption, vid_list)
