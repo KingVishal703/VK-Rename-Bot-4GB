@@ -5,6 +5,7 @@ import pyromod
 import pyrogram.utils
 import threading
 from flask import Flask
+import os
 
 pyrogram.utils.MIN_CHAT_ID = -999999999999
 pyrogram.utils.MIN_CHANNEL_ID = -100999999999999
@@ -17,7 +18,7 @@ bot = Client(
     plugins=dict(root='plugins')
 )
 
-# -------------------- FLASK SERVER FOR KOYEB --------------------
+# -------------------- FLASK SERVER --------------------
 
 web_app = Flask(__name__)
 
@@ -26,18 +27,18 @@ def home():
     return "Bot is running!"
 
 def run_web():
-    web_app.run(host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    web_app.run(host="0.0.0.0", port=port)
 
-# ---------------------------------------------------------------
+# Flask ko sirf ek baar start karo
+threading.Thread(target=run_web, daemon=True).start()
+
+# -------------------- BOT START --------------------
 
 if STRING_SESSION:
     apps = [Client2, bot]
-
     for app in apps:
         app.start()
-
-    # Start Flask in background thread
-    threading.Thread(target=run_web).start()
 
     idle()
 
@@ -45,9 +46,6 @@ if STRING_SESSION:
         app.stop()
 
 else:
-    # Start Flask in background thread
-    threading.Thread(target=run_web).start()
-
     bot.run()
 
 
