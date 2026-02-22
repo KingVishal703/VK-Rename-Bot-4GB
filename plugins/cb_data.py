@@ -258,8 +258,8 @@ async def vid(bot, update):
     if thumb:
         ph_path = await bot.download_media(thumb)
         img = Image.open(ph_path).convert("RGB")
-        img = img.resize((320, 320))
-        img.save(ph_path, "JPEG")
+        img.save(ph_path, "JPEG", quality=100)  # Full quality, exact size
+        
     else:
         try:
             if duration > 1:
@@ -287,6 +287,7 @@ async def vid(bot, update):
             caption=caption,
             progress=progress_for_pyrogram,
             progress_args=("🚀 Try To Uploading...  ⚡", ms, time.time())
+            supports_streaming=True
         )
 
         await ms.delete()
@@ -302,6 +303,7 @@ async def vid(bot, update):
         if os.path.exists(file_path):
             os.remove(file_path)
         return
+
 
 
 @Client.on_callback_query(filters.regex("aud"))
