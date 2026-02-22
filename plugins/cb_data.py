@@ -286,7 +286,7 @@ async def vid(bot, update):
             duration=duration,
             caption=caption,
             progress=progress_for_pyrogram,
-            progress_args=("🚀 Try To Uploading...  ⚡", ms, time.time())
+            progress_args=("🚀 Try To Uploading...  ⚡", ms, time.time()),
             supports_streaming=True
         )
 
