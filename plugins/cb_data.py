@@ -156,131 +156,151 @@ async def doc(bot, update):
             os.remove(file_path)
             return
 
-
 @Client.on_callback_query(filters.regex("vid"))
 async def vid(bot, update):
 
-    # Creating Directory for Metadata
+    import os
+
+    # Create Metadata folder if not exists
     if not os.path.isdir("Metadata"):
         os.mkdir("Metadata")
 
     new_name = update.message.text
-    used_ = find_one(update.from_user.id)
-    used = used_["used_limit"]
-    date = used_["date"]
     name = new_name.split(":-")
+
+    if len(name) < 2:
+        await update.message.edit("❌ Invalid filename format.")
+        return
+
     new_filename = name[1]
     file_path = f"downloads/{new_filename}"
+
     message = update.message.reply_to_message
     file = message.document or message.video or message.audio
-    hinata = message
+
     ms = await update.message.edit("🚀 Try To Download...  ⚡")
-    used_limit(update.from_user.id, file.file_size)
+
+    used_ = find_one(update.from_user.id)
+    used = used_["used_limit"]
+
     c_time = time.time()
-    total_used = used + int(file.file_size)
-    used_limit(update.from_user.id, total_used)
+
     try:
-        path = await bot.download_media(message=file, progress=progress_for_pyrogram, progress_args=("🚀 Try To Downloading...  ⚡",  ms, c_time))
-
+        path = await bot.download_media(
+            message=file,
+            progress=progress_for_pyrogram,
+            progress_args=("🚀 Try To Downloading...  ⚡", ms, c_time)
+        )
     except Exception as e:
-        neg_used = used - int(file.file_size)
-        used_limit(update.from_user.id, neg_used)
-        await ms.edit(e)
+        await ms.edit(str(e))
         return
-    
-    # Metadata Adding Code
-    _bool_metadata = find(int(message.chat.id))[2] 
-    
-    if _bool_metadata:
-        metadata = find(int(message.chat.id))[3]
-        metadata_path = f"Metadata/{new_filename}"
-        await add_metadata(path, metadata_path, metadata, ms)
-    else:
-        await ms.edit("🚀 Mode Changing...  ⚡") 
 
-    splitpath = path.split("/downloads/")
-    dow_file_name = splitpath[1]
-    old_file_name = f"downloads/{dow_file_name}"
-    os.rename(old_file_name, file_path)
-    user_id = int(update.message.chat.id)
-    data = find(user_id)
+    # ---------------- Metadata ---------------- #
+
+    user_data = find(int(message.chat.id))
+    _bool_metadata = user_data[2]
+
+    if _bool_metadata:
+        metadata_value = user_data[3]
+        metadata_path = f"Metadata/{new_filename}"
+        await add_metadata(path, metadata_path, metadata_value, ms)
+        source_path = metadata_path
+    else:
+        await ms.edit("🚀 Mode Changing...  ⚡")
+        source_path = path
+
+    # ---------------- SAFE RENAME ---------------- #
+
+    if os.path.exists(source_path):
+        os.rename(source_path, file_path)
+    else:
+        await ms.edit("❌ File not found for renaming.")
+        return
+
+    # ---------------- USER DATA ---------------- #
+
+    data = find(int(update.message.chat.id))
+
+    c_caption = None
     try:
         c_caption = data[1]
     except:
         pass
-    thumb = data[0]
-    
-    duration = 0
 
+    thumb = data[0]
+
+    # ---------------- DURATION ---------------- #
+
+    duration = 0
     parser = createParser(file_path)
+
     if parser:
-        metadata = extractMetadata(parser)
-        if metadata and metadata.has("duration"):
-            duration = metadata.get("duration").seconds
+        meta = extractMetadata(parser)
+        if meta and meta.has("duration"):
+            duration = meta.get("duration").seconds
+
+    # ---------------- CAPTION ---------------- #
+
     if c_caption:
         vid_list = ["filename", "filesize", "duration"]
         new_tex = escape_invalid_curly_brackets(c_caption, vid_list)
-        caption = new_tex.format(filename=new_filename, filesize=humanbytes(
-            file.file_size), duration=timedelta(seconds=duration))
+        caption = new_tex.format(
+            filename=new_filename,
+            filesize=humanbytes(file.file_size),
+            duration=timedelta(seconds=duration)
+        )
     else:
         caption = f"**{new_filename}**"
+
+    # ---------------- THUMB ---------------- #
+
     if thumb:
         ph_path = await bot.download_media(thumb)
-        Image.open(ph_path).convert("RGB").save(ph_path)
-        img = Image.open(ph_path)
-        img.resize((320, 320))
+        img = Image.open(ph_path).convert("RGB")
+        img = img.resize((320, 320))
         img.save(ph_path, "JPEG")
-        c_time = time.time()
-
     else:
         try:
-            ph_path_ = await take_screen_shot(file_path, os.path.dirname(os.path.abspath(file_path)), random.randint(0, duration - 1))
-            width, height, ph_path = await fix_thumb(ph_path_)
-        except Exception as e:
+            if duration > 1:
+                ph_path_ = await take_screen_shot(
+                    file_path,
+                    os.path.dirname(os.path.abspath(file_path)),
+                    random.randint(0, duration - 1)
+                )
+                width, height, ph_path = await fix_thumb(ph_path_)
+            else:
+                ph_path = None
+        except:
             ph_path = None
-            print(e)
 
-    value = 2090000000
-    if value < file.file_size:
-        await ms.edit("🚀 Try To Upload...  ⚡")
-        try:
-            filw = await app.send_video(LOG_CHANNEL, video=metadata_path if _bool_metadata else file_path, thumb=ph_path, duration=duration, caption=caption, progress=progress_for_pyrogram, progress_args=("🚀 Try To Uploading...  ⚡",  ms, c_time))
-            from_chat = filw.chat.id
-            mg_id = filw.id
-            time.sleep(2)
-            await bot.copy_message(update.from_user.id, from_chat, mg_id)
-            await ms.delete()
-            
+    # ---------------- UPLOAD ---------------- #
+
+    await ms.edit("🚀 Try To Upload...  ⚡")
+
+    try:
+        await bot.send_video(
+            update.from_user.id,
+            video=file_path,
+            thumb=ph_path,
+            duration=duration,
+            caption=caption,
+            progress=progress_for_pyrogram,
+            progress_args=("🚀 Try To Uploading...  ⚡", ms, time.time())
+        )
+
+        await ms.delete()
+
+        if os.path.exists(file_path):
             os.remove(file_path)
-            try:
-                os.remove(ph_path)
-            except:
-                pass
-                
-        except Exception as e:
-            neg_used = used - int(file.file_size)
-            used_limit(update.from_user.id, neg_used)
-            await ms.edit(e)
+
+        if ph_path and os.path.exists(ph_path):
+            os.remove(ph_path)
+
+    except Exception as e:
+        await ms.edit(str(e))
+        if os.path.exists(file_path):
             os.remove(file_path)
-            try:
-                os.remove(ph_path)
-            except:
-                return
-    else:
-        await ms.edit("🚀 Try To Upload...  ⚡")
-        c_time = time.time()
-        try:
-            await bot.send_video(update.from_user.id, video=metadata_path if _bool_metadata else file_path, thumb=ph_path, duration=duration, caption=caption, progress=progress_for_pyrogram, progress_args=("🚀 Try To Uploading...  ⚡",  ms, c_time))
-            await ms.delete()
-            
-            os.remove(file_path)
-            
-        except Exception as e:
-            neg_used = used - int(file.file_size)
-            used_limit(update.from_user.id, neg_used)
-            await ms.edit(e)
-            os.remove(file_path)
-            return
+        return
 
 
 @Client.on_callback_query(filters.regex("aud"))
