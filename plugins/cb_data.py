@@ -188,6 +188,7 @@ async def vid(bot, update):
     try:
         path = await bot.download_media(
             message=file,
+            file_name=f"downloads/{new_filename}",
             progress=progress_for_pyrogram,
             progress_args=("🚀 Try To Downloading...  ⚡", ms, c_time)
         )
