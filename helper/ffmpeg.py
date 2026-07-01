@@ -155,6 +155,48 @@ async def add_outro(video, outro, output):
     return ok
 
 
+async def add_image_watermark(video, logo, output, position="top-right"):
+
+    pos = {
+        "top-left": "10:10",
+        "top-right": "main_w-overlay_w-10:10",
+        "bottom-left": "10:main_h-overlay_h-10",
+        "bottom-right": "main_w-overlay_w-10:main_h-overlay_h-10",
+        "center": "(main_w-overlay_w)/2:(main_h-overlay_h)/2"
+    }
+
+    overlay = pos.get(position, pos["top-right"])
+
+    ok = await run_ffmpeg([
+        "ffmpeg",
+        "-y",
+        "-i", video,
+        "-i", logo,
+        "-filter_complex",
+        f"overlay={overlay}",
+        "-codec:a",
+        "copy",
+        output
+    ])
+
+    return ok
+
+
+async def add_text_watermark(video, text, output):
+
+    ok = await run_ffmpeg([
+        "ffmpeg",
+        "-y",
+        "-i", video,
+        "-vf",
+        f"drawtext=text='{text}':fontcolor=white:fontsize=28:x=w-tw-20:y=20",
+        "-codec:a",
+        "copy",
+        output
+    ])
+
+    return ok
+
 
 
 # Jishu Developer 
