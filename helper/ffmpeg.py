@@ -199,6 +199,67 @@ async def add_text_watermark(video, text, output):
 
 
 
+import subprocess
+import asyncio
+import os
+
+async def add_intro_outro_video(input_path, output_path, intro_path=None, outro_path=None):
+    try:
+        files = []
+
+        # अगर intro है तो पहले डालो
+        if intro_path and os.path.exists(intro_path):
+            files.append(intro_path)
+
+        # main video
+        files.append(input_path)
+
+        # अगर outro है तो last में डालो
+        if outro_path and os.path.exists(outro_path):
+            files.append(outro_path)
+
+        # अगर सिर्फ main video है
+        if len(files) == 1:
+            os.rename(input_path, output_path)
+            return output_path
+
+        # concat list file बनाओ
+        list_file = "concat_list.txt"
+        with open(list_file, "w", encoding="utf-8") as f:
+            for file in files:
+                f.write(f"file '{os.path.abspath(file)}'\n")
+
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-f", "concat",
+            "-safe", "0",
+            "-i", list_file,
+            "-c", "copy",
+            output_path
+        ]
+
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+
+        await process.communicate()
+
+        if os.path.exists(output_path):
+            try:
+                os.remove(list_file)
+            except:
+                pass
+            return output_path
+
+        return None
+
+    except Exception as e:
+        print("Intro/Outro Error:", e)
+        return None
+
 # Jishu Developer 
 # Don't Remove Credit 🥺
 # Telegram Channel @Madflix_Bots
