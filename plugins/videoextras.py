@@ -86,7 +86,7 @@ async def cb_wm_toggle(client, query: CallbackQuery):
     await query.message.edit_reply_markup(settings_markup(ex))
     await query.answer("Watermark " + ("ON ✅" if enable else "OFF ❌"))
 
-
+#first real command
 """@Client.on_message(filters.private & filters.command("setintro"))
 async def set_intro_cmd(client, message: Message):
     target = message.reply_to_message
@@ -108,7 +108,8 @@ async def set_intro_cmd(client, message: Message):
     )
 """
 
-@Client.on_message(filters.private & filters.command("setintro"))
+#second test command
+"""@Client.on_message(filters.private & filters.command("setintro"))
 async def set_intro_cmd(client, message: Message):
 
     # Reply check
@@ -146,7 +147,43 @@ async def set_intro_cmd(client, message: Message):
     await msg.edit(
         "✅ Intro clip successfully set ho gayi.\n\n"
         "Ab har renamed video ke start me ye intro add hoga."
+    )"""
+
+#third test command 
+
+@Client.on_message(filters.private & filters.command("setintro"))
+async def set_intro_cmd(client, message: Message):
+
+    try:
+        video_msg = await client.ask(
+            chat_id=message.chat.id,
+            text="🎬 Ab 2 minute ke andar intro video bhejo.",
+            filters=filters.video | filters.document | filters.animation,
+            timeout=120
+        )
+    except ListenerTimeout:
+        return await message.reply_text(
+            "⏰ Time out ho gaya.\nDobara /setintro bhejkar try karo."
+        )
+
+    ms = await message.reply_text("⬇️ Intro clip download ho rahi hai...")
+
+    path = os.path.join(EXTRAS_DIR, f"{message.chat.id}_intro.mp4")
+
+    try:
+        await client.download_media(video_msg, file_name=path)
+    except Exception as e:
+        return await ms.edit(f"❌ Download fail ho gaya:\n`{e}`")
+
+    set_intro(message.chat.id, path)
+    toggle_intro(message.chat.id, True)
+
+    await ms.edit(
+        "✅ Intro clip successfully set ho gayi!\n\n"
+        "Ab ye renamed videos me automatically use hogi."
     )
+
+
 
 
 
