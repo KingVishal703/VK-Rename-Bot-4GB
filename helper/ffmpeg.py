@@ -91,7 +91,68 @@ async def add_metadata(input_path, output_path, metadata, ms):
         return None
     
 
+# ================= VIDEO EDIT FUNCTIONS ================= #
 
+async def run_ffmpeg(cmd):
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+    await process.communicate()
+    return process.returncode == 0
+
+
+async def add_intro(intro, video, output):
+
+    txt = "intro_list.txt"
+
+    with open(txt, "w", encoding="utf-8") as f:
+        f.write(f"file '{os.path.abspath(intro)}'\n")
+        f.write(f"file '{os.path.abspath(video)}'\n")
+
+    ok = await run_ffmpeg([
+        "ffmpeg",
+        "-y",
+        "-f", "concat",
+        "-safe", "0",
+        "-i", txt,
+        "-c", "copy",
+        output
+    ])
+
+    try:
+        os.remove(txt)
+    except:
+        pass
+
+    return ok
+
+
+async def add_outro(video, outro, output):
+
+    txt = "outro_list.txt"
+
+    with open(txt, "w", encoding="utf-8") as f:
+        f.write(f"file '{os.path.abspath(video)}'\n")
+        f.write(f"file '{os.path.abspath(outro)}'\n")
+
+    ok = await run_ffmpeg([
+        "ffmpeg",
+        "-y",
+        "-f", "concat",
+        "-safe", "0",
+        "-i", txt,
+        "-c", "copy",
+        output
+    ])
+
+    try:
+        os.remove(txt)
+    except:
+        pass
+
+    return ok
 
 
 
