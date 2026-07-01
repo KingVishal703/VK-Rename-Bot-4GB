@@ -2,20 +2,9 @@ from pyrogram.types import (InlineKeyboardButton, InlineKeyboardMarkup)
 from config import *
 from pyrogram import Client, filters
 from helper.date import add_date
-from helper.database import (
-    uploadlimit,
-    usertype,
-    addpre,
-    set_intro,
-    set_intro_file,
-    set_outro,
-    set_outro_file,
-    set_watermark,
-    set_watermark_file,
-    set_watermark_position,
-    set_text_watermark,
-    set_text_watermark_status
-)
+from helper.database import uploadlimit, usertype, addpre
+
+
 
 
 
@@ -152,131 +141,10 @@ async def dft(bot,update):
     await bot.send_message(user_id, f"Hey {update.from_user.mention} \n\nYour Daily Data Limit Has Been Reset Successfully. Check Your Plan Here /myplan\n\n<b>Contact Admin :</b> @MadflixOfficials")
 
 
-# ================= VIDEO EDIT SETTINGS ================= #
-
-@Client.on_message(filters.private & filters.user(ADMIN) & filters.command("intro"))
-async def intro_toggle(client, message):
-
-    if len(message.command) != 2:
-        return await message.reply("Usage:\n/intro on\n/intro off")
-
-    if message.command[1].lower() == "on":
-        set_intro(message.chat.id, True)
-        await message.reply("✅ Intro Enabled")
-
-    else:
-        set_intro(message.chat.id, False)
-        await message.reply("❌ Intro Disabled")
-
-
-@Client.on_message(filters.private & filters.user(ADMIN) & filters.command("outro"))
-async def outro_toggle(client, message):
-
-    if len(message.command) != 2:
-        return await message.reply("Usage:\n/outro on\n/outro off")
-
-    if message.command[1].lower() == "on":
-        set_outro(message.chat.id, True)
-        await message.reply("✅ Outro Enabled")
-
-    else:
-        set_outro(message.chat.id, False)
-        await message.reply("❌ Outro Disabled")
-
-
-@Client.on_message(filters.private & filters.user(ADMIN) & filters.command("watermark"))
-async def watermark_toggle(client, message):
-
-    if len(message.command) != 2:
-        return await message.reply("Usage:\n/watermark on\n/watermark off")
-
-    if message.command[1].lower() == "on":
-        set_watermark(message.chat.id, True)
-        await message.reply("✅ Watermark Enabled")
-
-    else:
-        set_watermark(message.chat.id, False)
-        await message.reply("❌ Watermark Disabled")
-
-
-@Client.on_message(filters.private & filters.user(ADMIN) & filters.command("text"))
-async def text_toggle(client, message):
-
-    if len(message.command) != 2:
-        return await message.reply("Usage:\n/text on\n/text off")
-
-    if message.command[1].lower() == "on":
-        set_text_watermark_status(message.chat.id, True)
-        await message.reply("✅ Text Watermark Enabled")
-
-    else:
-        set_text_watermark_status(message.chat.id, False)
-        await message.reply("❌ Text Watermark Disabled")
-
-
-@Client.on_message(filters.private & filters.user(ADMIN) & filters.command("setintro"))
-async def set_intro_video(client, message):
-
-    if not message.reply_to_message:
-        return await message.reply("❌ Reply to a video/gif for intro")
-
-    file_id = message.reply_to_message.video or message.reply_to_message.document or message.reply_to_message.animation
-
-    if not file_id:
-        return await message.reply("❌ Invalid file")
-
-    set_intro_file(message.chat.id, file_id.file_id)
-    set_intro(message.chat.id, True)
-
-    await message.reply("✅ Intro video saved successfully")
-
-@Client.on_message(filters.private & filters.user(ADMIN) & filters.command("setoutro"))
-async def set_outro_video(client, message):
-
-    if not message.reply_to_message:
-        return await message.reply("❌ Reply to a video/gif for outro")
-
-    file_id = message.reply_to_message.video or message.reply_to_message.document or message.reply_to_message.animation
-
-    if not file_id:
-        return await message.reply("❌ Invalid file")
-
-    set_outro_file(message.chat.id, file_id.file_id)
-    set_outro(message.chat.id, True)
-
-    await message.reply("✅ Outro video saved successfully")
 
 
 
-@Client.on_message(filters.private & filters.user(ADMIN) & filters.command("setwatermark"))
-async def set_watermark_image(client, message):
 
-    if not message.reply_to_message:
-        return await message.reply("❌ Reply to an image")
-
-    file_id = message.reply_to_message.photo
-
-    if not file_id:
-        return await message.reply("❌ Invalid image")
-
-    set_watermark_file(message.chat.id, file_id.file_id)
-    set_watermark(message.chat.id, True)
-
-    await message.reply("✅ Watermark image saved successfully")
-
-
-@Client.on_message(filters.private & filters.user(ADMIN) & filters.command("settext"))
-async def set_text_watermark_cmd(client, message):
-
-    if len(message.command) < 2:
-        return await message.reply("Usage: /settext your_text_here")
-
-    text = message.text.split(" ", 1)[1]
-
-    set_text_watermark(message.chat.id, text)
-    set_text_watermark_status(message.chat.id, True)
-
-    await message.reply(f"✅ Text watermark saved:\n{text}")
 # Jishu Developer 
 # Don't Remove Credit 🥺
 # Telegram Channel @Madflix_Bots
