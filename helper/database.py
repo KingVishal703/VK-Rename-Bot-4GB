@@ -43,7 +43,7 @@ def insert(chat_id):
                 "uploadlimit": 5368709120, "used_limit": 0, "usertype": "Free", "prexdate": None,
                 "metadata": False, "metadata_code": "By @Madflix_Bots",
                 "intro": False, "intro_file": None, "outro": False, "outro_file": None, "watermark": False,
-                "watermark_file": None, "watermark_position": "top-right" }
+                "watermark_file": None, "watermark_position": "top-right", "text_watermark": None, "text_watermark_status": False}
     
 
     try:
@@ -109,6 +109,12 @@ def set_watermark_file(chat_id, file_id):
 def set_watermark_position(chat_id, position):
     dbcol.update_one({"_id": chat_id}, {"$set": {"watermark_position": position}})
 
+def set_text_watermark(chat_id, text):
+    dbcol.update_one({"_id": chat_id}, {"$set": {"text_watermark": text}})
+
+
+def set_text_watermark_status(chat_id, status):
+    dbcol.update_one({"_id": chat_id}, {"$set": {"text_watermark_status": status}})
 
 def dateupdate(chat_id, date):
     dbcol.update_one({"_id": chat_id}, {"$set": {"date": date}})
@@ -186,6 +192,16 @@ def find(chat_id):
             watermark_position = i["watermark_position"]
         except:
             watermark_position = "top-right"
+
+        try:
+            text_watermark = i["text_watermark"]
+        except:
+            text_watermark = None
+
+        try:
+            text_watermark_status = i["text_watermark_status"]
+        except:
+            text_watermark_status = False
             
 
 
@@ -200,7 +216,9 @@ def find(chat_id):
             outro_file,
             watermark,
             watermark_file,
-            watermark_position
+            watermark_position,
+            text_watermark,
+            text_watermark_status
        ]         
 
 def getid():
