@@ -187,7 +187,7 @@ async def set_intro_cmd(client, message: Message):
 
 
 
-@Client.on_message(filters.private & filters.command("setoutro"))
+"""@Client.on_message(filters.private & filters.command("setoutro"))
 async def set_outro_cmd(client, message: Message):
     target = message.reply_to_message
     if not target or not (target.video or target.document or target.animation):
@@ -205,6 +205,39 @@ async def set_outro_cmd(client, message: Message):
     await ms.edit(
         "✅ Outro clip set ho gayi!\n\n"
         "Ise apne renamed videos mein ON karne ke liye /videosettings use karo."
+    )"""
+
+
+@Client.on_message(filters.private & filters.command("setoutro"))
+async def set_outro_cmd(client, message: Message):
+
+    try:
+        video_msg = await client.ask(
+            chat_id=message.chat.id,
+            text="🎬 Ab 2 minute ke andar outro video bhejo.",
+            filters=filters.video | filters.document | filters.animation,
+            timeout=120
+        )
+    except ListenerTimeout:
+        return await message.reply_text(
+            "⏰ Time out ho gaya.\nDobara /setoutro bhejkar try karo."
+        )
+
+    ms = await message.reply_text("⬇️ Outro clip download ho rahi hai...")
+
+    path = os.path.join(EXTRAS_DIR, f"{message.chat.id}_outro.mp4")
+
+    try:
+        await client.download_media(video_msg, file_name=path)
+    except Exception as e:
+        return await ms.edit(f"❌ Download fail ho gaya:\n`{e}`")
+
+    set_outro(message.chat.id, path)
+    toggle_outro(message.chat.id, True)
+
+    await ms.edit(
+        "✅ Outro clip successfully set ho gayi!\n\n"
+        "Ab ye renamed videos ke end me automatically use hogi."
     )
 
 
@@ -294,4 +327,4 @@ async def remove_watermark_cmd(client, message: Message):
 
 
 
-# Added by Claude — Intro / Outro / Watermark feature
+# @kingbots — Intro / Outro / Watermark feature
