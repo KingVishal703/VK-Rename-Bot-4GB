@@ -1,4 +1,4 @@
-from pyrogram import Client, filters
+"""from pyrogram import Client, filters
 from pyrogram.enums import MessageMediaType
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply
 
@@ -41,4 +41,52 @@ async def refunc(client, message):
 # Don't Remove Credit 🥺
 # Telegram Channel @Madflix_Bots
 # Back-Up Channel @JishuBotz
-# Developer @JishuDeveloper & @MadflixOfficials
+# Developer @JishuDeveloper & @MadflixOfficials"""
+
+from pyrogram import Client, filters
+from pyrogram.enums import MessageMediaType
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply
+
+
+@Client.on_message(filters.private & filters.reply)
+async def refunc(client, message):
+    reply_message = message.reply_to_message
+
+    if reply_message.reply_markup and isinstance(reply_message.reply_markup, ForceReply):
+
+        new_name = message.text.strip()
+
+        await message.delete()
+
+        msg = await client.get_messages(message.chat.id, reply_message.id)
+        file = msg.reply_to_message
+        media = getattr(file, file.media.value)
+
+        # Extension automatically add
+        if "." not in new_name:
+            if media.file_name and "." in media.file_name:
+                ext = media.file_name.rsplit(".", 1)[-1]
+            else:
+                ext = "mkv"
+            new_name = f"{new_name}.{ext}"
+
+        await reply_message.delete()
+
+        buttons = [
+            [InlineKeyboardButton("📁 Document", callback_data="doc")]
+        ]
+
+        if file.media in [MessageMediaType.VIDEO, MessageMediaType.DOCUMENT]:
+            buttons.append(
+                [InlineKeyboardButton("🎥 Video", callback_data="vid")]
+            )
+        elif file.media == MessageMediaType.AUDIO:
+            buttons.append(
+                [InlineKeyboardButton("🎵 Audio", callback_data="aud")]
+            )
+
+        await message.reply(
+            text=f"Rename:-{new_name}",
+            reply_to_message_id=file.id,
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
