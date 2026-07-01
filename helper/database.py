@@ -43,7 +43,7 @@ def insert(chat_id):
                 "uploadlimit": 5368709120, "used_limit": 0, "usertype": "Free", "prexdate": None,
                 "metadata": False, "metadata_code": "By @Madflix_Bots",
                 "intro": False, "intro_file": None, "outro": False, "outro_file": None, "watermark": False,
-                "watermark_file": None, "watermark_position": "top-right", }
+                "watermark_file": None, "watermark_position": "top-right" }
     
 
     try:
@@ -194,18 +194,14 @@ def find(chat_id):
             caption,
             metadata,
             metadata_code,
-
-           intro,
-           intro_file,
-
-           outro,
-           outro_file,
-
-           watermark,
-           watermark_file,
-
-           watermark_position
-      ]
+            intro,
+            intro_file,
+            outro,
+            outro_file,
+            watermark,
+            watermark_file,
+            watermark_position
+       ]         
 
 def getid():
     values = []
