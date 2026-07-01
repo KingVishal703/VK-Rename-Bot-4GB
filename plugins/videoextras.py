@@ -87,7 +87,7 @@ async def cb_wm_toggle(client, query: CallbackQuery):
     await query.answer("Watermark " + ("ON ✅" if enable else "OFF ❌"))
 
 
-@Client.on_message(filters.private & filters.command("setintro"))
+"""@Client.on_message(filters.private & filters.command("setintro"))
 async def set_intro_cmd(client, message: Message):
     target = message.reply_to_message
     if not target or not (target.video or target.document or target.animation):
@@ -106,6 +106,48 @@ async def set_intro_cmd(client, message: Message):
         "✅ Intro clip set ho gayi!\n\n"
         "Ise apne renamed videos mein ON karne ke liye /videosettings use karo."
     )
+"""
+
+@Client.on_message(filters.private & filters.command("setintro"))
+async def set_intro_cmd(client, message: Message):
+
+    # Reply check
+    if not message.reply_to_message:
+        return await message.reply_text(
+            "❌ Kisi video ko reply karke /setintro bhejo."
+        )
+
+    target = message.reply_to_message
+
+    # Sirf video allow
+    if not (target.video or target.document or target.animation):
+        return await message.reply_text(
+            "❌ Reply kiya hua message video nahi hai."
+        )
+
+    msg = await message.reply_text("⬇️ Intro clip download ho rahi hai...")
+
+    path = os.path.join(EXTRAS_DIR, f"{message.chat.id}_intro.mp4")
+
+    try:
+        await target.download(file_name=path)
+    except Exception as e:
+        return await msg.edit(f"❌ Download failed:\n`{e}`")
+
+    if not os.path.exists(path):
+        return await msg.edit("❌ Video download nahi hui.")
+
+    try:
+        set_intro(message.chat.id, path)
+        toggle_intro(message.chat.id, True)
+    except Exception as e:
+        return await msg.edit(f"❌ Database Error:\n`{e}`")
+
+    await msg.edit(
+        "✅ Intro clip successfully set ho gayi.\n\n"
+        "Ab har renamed video ke start me ye intro add hoga."
+    )
+
 
 
 @Client.on_message(filters.private & filters.command("setoutro"))
